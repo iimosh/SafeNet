@@ -1,11 +1,12 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
 use App\Models\Assessment;
 use App\Models\AssessmentAnswer;
-use App\Models\Questionnaire;
 use App\Models\Option;
+use App\Models\Questionnaire;
 use Illuminate\Http\Request;
 
 class AssessmentController extends Controller
@@ -13,29 +14,28 @@ class AssessmentController extends Controller
     public function start()
     {
         $questionnaire = Questionnaire::with('questions.options')->latest()->firstOrFail();
+
         return view('questionnaire', compact('questionnaire'));
     }
 
     public function submit(Request $request)
     {
         $questionnaireId = $request->input('questionnaire_id');
-
         $questionnaire = Questionnaire::with('questions.options')->findOrFail($questionnaireId);
 
-        // answers[question_id] = option_id
         $answers = $request->input('answers', []);
 
-        // Basic validation: require answer for each question
-        foreach ($questionnaire->questions as $q) {
-            if (!isset($answers[$q->id])) {
-                return back()->withErrors(['answers' => 'Please answer all questions.'])->withInput();
+        foreach ($questionnaire->questions as $question) {
+            if (!isset($answers[$question->id])) {
+                return back()
+                    ->withErrors(['answers' => 'Please answer all questions.'])
+                    ->withInput();
             }
         }
 
         $total = 0;
-        $breakdown = []; // category => points
+        $breakdown = [];
 
-        // Create assessment
         $assessment = Assessment::create([
             'user_id' => auth()->id(),
             'questionnaire_id' => $questionnaire->id,
@@ -44,30 +44,31 @@ class AssessmentController extends Controller
             'category_breakdown' => null,
         ]);
 
-        foreach ($questionnaire->questions as $q) {
-            $optionId = (int) $answers[$q->id];
-            $option = Option::where('id', $optionId)->where('question_id', $q->id)->firstOrFail();
+        foreach ($questionnaire->questions as $question) {
+            $optionId = (int)$answers[$question->id];
 
-            $points = (int) $option->risk_points;
+            $option = Option::where('id', $optionId)
+                ->where('question_id', $question->id)
+                ->firstOrFail();
+
+            $points = (int)$option->risk_points;
             $total += $points;
 
-            $cat = $q->category ?? 'general';
-            $breakdown[$cat] = ($breakdown[$cat] ?? 0) + $points;
+            $category = $question->category ?? 'general';
+            $breakdown[$category] = ($breakdown[$category] ?? 0) + $points;
 
             AssessmentAnswer::create([
                 'assessment_id' => $assessment->id,
-                'question_id' => $q->id,
+                'question_id' => $question->id,
                 'option_id' => $option->id,
                 'points' => $points,
-                'category' => $cat,
+                'category' => $category,
             ]);
         }
 
-        $risk = $this->riskLevel($total);
-
         $assessment->update([
             'total_points' => $total,
-            'risk_level' => $risk,
+            'risk_level' => $this->riskLevel($total),
             'category_breakdown' => $breakdown,
         ]);
 
@@ -76,12 +77,13 @@ class AssessmentController extends Controller
 
     public function show(Assessment $assessment)
     {
-        // security: only owner (or admin later)
-        abort_if($assessment->user_id !== auth()->id() && auth()->user()->role !== 'admin', 403);
+        abort_if(
+            $assessment->user_id !== auth()->id() && auth()->user()->role !== 'admin',
+            403
+        );
 
         $assessment->load('questionnaire', 'answers.question', 'answers.option');
 
-        // sort breakdown by highest points
         $breakdown = collect($assessment->category_breakdown ?? [])->sortDesc();
 
         return view('result', [

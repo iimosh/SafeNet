@@ -1,36 +1,55 @@
 <x-app-layout>
-    <div class="max-w-3xl mx-auto p-6">
-        <h1 class="text-2xl font-bold">{{ $questionnaire->title }}</h1>
-        <p class="text-gray-600 mb-6">{{ $questionnaire->description }}</p>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ $questionnaire->title }}
+        </h2>
+    </x-slot>
 
-        @if ($errors->any())
-            <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
-                {{ $errors->first() }}
+    <div class="py-10">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white shadow rounded-2xl p-8">
+                <p class="text-gray-600 mb-6">{{ $questionnaire->description }}</p>
+
+                @if ($errors->any())
+                    <div class="mb-4 rounded-lg bg-red-100 text-red-700 p-4">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('assessment.submit') }}">
+                    @csrf
+                    <input type="hidden" name="questionnaire_id" value="{{ $questionnaire->id }}">
+
+                    <div class="space-y-8">
+                        @foreach($questionnaire->questions as $question)
+                            <div class="border rounded-xl p-5">
+                                <h3 class="font-semibold text-lg mb-4">
+                                    {{ $loop->iteration }}. {{ $question->question_text }}
+                                </h3>
+
+                                <div class="space-y-3">
+                                    @foreach($question->options as $option)
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <input type="radio"
+                                                   name="answers[{{ $question->id }}]"
+                                                   value="{{ $option->id }}"
+                                                   required>
+                                            <span>{{ $option->option_text }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="mt-8">
+                        <button type="submit"
+                                class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
+                            Submit Assessment
+                        </button>
+                    </div>
+                </form>
             </div>
-        @endif
-
-        <form method="POST" action="{{ route('assessment.submit') }}">
-            @csrf
-            <input type="hidden" name="questionnaire_id" value="{{ $questionnaire->id }}"/>
-
-            @foreach($questionnaire->questions as $q)
-                <div class="mb-6 p-4 border rounded">
-                    <div class="font-semibold mb-2">{{ $q->question_text }}</div>
-
-                    @foreach($q->options as $opt)
-                        <label class="block">
-                            <input type="radio"
-                                   name="answers[{{ $q->id }}]"
-                                   value="{{ $opt->id }}"
-                                   class="mr-2"
-                                   required>
-                            {{ $opt->option_text }}
-                        </label>
-                    @endforeach
-                </div>
-            @endforeach
-
-            <button class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
-        </form>
+        </div>
     </div>
 </x-app-layout>
