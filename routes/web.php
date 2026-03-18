@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/questionnaires', [App\Http\Controllers\QuestionnaireController::class, 'index'])->name('questionnaires.index');
 
     Route::post('/parent/add-child', [App\Http\Controllers\ParentController::class, 'addChild'])->name('parent.add-child');
+    Route::delete('/parent/remove-child/{child}', [App\Http\Controllers\ParentController::class, 'removeChild'])->name('parent.remove-child');
 
     Route::get('/parent/dashboard', function () {
         abort_if(!auth()->user()->isParent(), 403);

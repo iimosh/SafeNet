@@ -16,7 +16,21 @@
 
             @forelse(auth()->user()->children as $child)
                 <div class="bg-white shadow rounded-2xl p-8">
-                    <h2 class="text-lg font-semibold mb-1">{{ $child->name }}</h2>
+                    <div class="flex items-center justify-between mb-1">
+                        <h2 class="text-lg font-semibold">{{ $child->name }}</h2>
+
+                        @if(auth()->user()->children->count() > 1)
+                            <form method="POST" action="{{ route('parent.remove-child', $child) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        onclick="return confirm('Сигурно сакаш да го отстраниш {{ $child->name }}?')"
+                                        class="text-sm text-red-500 hover:text-red-700">
+                                    Отстрани
+                                </button>
+                            </form>
+                        @endif
+                    </div>
                     <p class="text-sm text-gray-500 mb-4">{{ $child->email }}</p>
 
                     <h3 class="text-md font-medium mb-3">Проценки</h3>
