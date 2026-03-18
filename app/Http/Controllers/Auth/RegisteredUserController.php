@@ -26,18 +26,44 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'in:student,parent'],
         ]);
+
+        if ($request->role === 'parent') {
+            $request->validate([
+                'child_email' => [
+                    'required',
+                    'email',
+                    function ($attribute, $value, $fail) {
+                        $student = \App\Models\User::where('email', $value)
+                            ->where('role', 'student')
+                            ->first();
+                        if (!$student) {
+                            $fail('No student account found with this email.');
+                        }
+                    }
+                ],
+            ]);
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'role' => 'student',
+            'role' => $request->role,
             'password' => Hash::make($request->password),
         ]);
+
+        if ($request->role === 'parent') {
+            $student = User::where('email', $request->child_email)->first();
+            $user->children()->attach($student->id);
+        }
 
         event(new Registered($user));
         Auth::login($user);
 
-        return redirect()->route('dashboard');
+        return match(auth()->user()->role) {
+            'parent' => redirect()->route('parent.dashboard'),
+            default  => redirect()->route('dashboard'),
+        };
     }
 }

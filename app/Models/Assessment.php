@@ -9,6 +9,7 @@ class Assessment extends Model
 {
     protected $fillable = [
         'user_id',
+        'filled_for_user_id',
         'questionnaire_id',
         'total_points',
         'risk_level',
@@ -22,6 +23,11 @@ class Assessment extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function filledFor()
+    {
+        return $this->belongsTo(User::class, 'filled_for_user_id');
     }
 
     public function questionnaire()

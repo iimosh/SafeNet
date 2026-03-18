@@ -11,11 +11,44 @@ use Illuminate\Http\Request;
 
 class AssessmentController extends Controller
 {
-    public function start()
+
+    public function index()
+    {
+        $assessments = Assessment::where('filled_for_user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view('assessment.index', compact('assessments'));
+    }
+
+    public function start(Request $request)
     {
         $questionnaire = Questionnaire::with('questions.options')->latest()->firstOrFail();
 
-        return view('questionnaire', compact('questionnaire'));
+        if (auth()->user()->isParent()) {
+            $children = auth()->user()->children;
+
+            if ($children->isEmpty()) {
+                return redirect()->route('parent.dashboard')
+                    ->withErrors(['error' => 'You have no linked children.']);
+            }
+
+            $selectedChildId = $request->query('child_id');
+
+            if (!$selectedChildId) {
+                return view('assessment.select-child', compact('children'));
+            }
+
+            $child = $children->firstWhere('id', $selectedChildId);
+            if (!$child) {
+                abort(403);
+            }
+
+            return view('questionnaire', compact('questionnaire', 'selectedChildId'));
+        }
+        $selectedChildId = auth()->id();
+        return view('questionnaire', compact('questionnaire', 'selectedChildId'));
+
     }
 
     public function submit(Request $request)
@@ -36,8 +69,16 @@ class AssessmentController extends Controller
         $total = 0;
         $breakdown = [];
 
+        $filledForUserId = $request->input('filled_for_user_id', auth()->id());
+
+        if (auth()->user()->isParent()) {
+            $child = auth()->user()->children->firstWhere('id', $filledForUserId);
+            if (!$child) abort(403);
+        }
+
         $assessment = Assessment::create([
             'user_id' => auth()->id(),
+            'filled_for_user_id' => $filledForUserId,
             'questionnaire_id' => $questionnaire->id,
             'total_points' => 0,
             'risk_level' => 'low',
@@ -77,10 +118,15 @@ class AssessmentController extends Controller
 
     public function show(Assessment $assessment)
     {
-        abort_if(
-            $assessment->user_id !== auth()->id() && auth()->user()->role !== 'admin',
-            403
-        );
+        $user = auth()->user();
+
+        $canView = match($user->role) {
+            'admin'  => true,
+            'parent' => $user->children->contains('id', $assessment->filled_for_user_id),
+            default  => $assessment->filled_for_user_id === $user->id,
+        };
+
+        abort_if(!$canView, 403);
 
         $assessment->load('questionnaire', 'answers.question', 'answers.option');
 

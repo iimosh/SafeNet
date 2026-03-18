@@ -19,6 +19,7 @@
                 <form method="POST" action="{{ route('assessment.submit') }}">
                     @csrf
                     <input type="hidden" name="questionnaire_id" value="{{ $questionnaire->id }}">
+                    <input type="hidden" name="filled_for_user_id" value="{{ $selectedChildId }}">
 
                     <div class="space-y-8">
                         @foreach($questionnaire->questions as $question)
