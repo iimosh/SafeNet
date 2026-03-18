@@ -27,10 +27,16 @@
                                 <p class="font-medium">Проценка #{{ $assessment->id }}</p>
                                 <p class="text-sm text-gray-500">{{ $assessment->created_at->format('d.m.Y') }}</p>
                             </div>
-                            <a href="{{ route('assessment.show', $assessment) }}"
-                               class="text-blue-600 hover:underline text-sm">
-                                Погледни
-                            </a>
+                            <div class="flex gap-2">
+                                <a href="{{ route('assessment.show', $assessment) }}"
+                                   class="text-blue-600 hover:underline text-sm">
+                                    Погледни
+                                </a>
+                                <a href="{{ route('assessment.report', $assessment) }}"
+                                   class="text-emerald-600 hover:underline text-sm">
+                                    Преземи PDF
+                                </a>
+                            </div>
                         </div>
                     @empty
                         <p class="text-gray-500 text-sm">Детето сè уште нема направено проценка.</p>

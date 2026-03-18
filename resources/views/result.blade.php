@@ -57,10 +57,15 @@
                     @endif
                 </div>
 
-                <div class="mt-6">
+                <div class="mt-6 flex gap-3">
                     <a href="{{ $backRoute }}"
                        class="inline-block px-5 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-700 transition">
                         Back to dashboard
+                    </a>
+
+                    <a href="{{ route('assessment.report', $assessment) }}"
+                       class="inline-block px-5 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition">
+                        Преземи извештај (PDF)
                     </a>
                 </div>
             </div>

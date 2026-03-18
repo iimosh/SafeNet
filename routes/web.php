@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/assessment/start', [AssessmentController::class, 'start'])->name('assessment.start');
     Route::post('/assessment/submit', [AssessmentController::class, 'submit'])->name('assessment.submit');
     Route::get('/assessment/{assessment}', [AssessmentController::class, 'show'])->name('assessment.show');
+    Route::get('/assessment/{assessment}/report', [App\Http\Controllers\ReportController::class, 'generate'])->name('assessment.report');
 
     Route::get('/questionnaires', [App\Http\Controllers\QuestionnaireController::class, 'index'])->name('questionnaires.index');
 
