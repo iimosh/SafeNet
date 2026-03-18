@@ -33,6 +33,10 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public function isAdmin(): bool   { return $this->role === 'admin'; }
+    public function isStudent(): bool { return $this->role === 'student'; }
+    public function isParent(): bool  { return $this->role === 'parent'; }
+
     public function assessments()
     {
         return $this->hasMany(Assessment::class);
@@ -41,6 +45,16 @@ class User extends Authenticatable implements FilamentUser
     public function documents()
     {
         return $this->hasMany(Document::class);
+    }
+
+    public function children()
+    {
+        return $this->belongsToMany(User::class, 'parent_student', 'parent_id', 'student_id');
+    }
+
+    public function parents()
+    {
+        return $this->belongsToMany(User::class, 'parent_student', 'student_id', 'parent_id');
     }
 
     public function canAccessPanel(Panel $panel): bool

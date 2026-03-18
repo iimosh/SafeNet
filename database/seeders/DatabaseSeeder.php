@@ -23,14 +23,26 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::firstOrCreate(
+        $student = User::firstOrCreate(
             ['email' => 'test@example.com'],
             [
-                'name' => 'Test User',
+                'name' => 'Test Student',
                 'role' => 'student',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
         );
+
+        $parent = User::firstOrCreate(
+            ['email' => 'parent@example.com'],
+            [
+                'name' => 'Test Parent',
+                'role' => 'parent',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $parent->children()->syncWithoutDetaching([$student->id]);
     }
 }
