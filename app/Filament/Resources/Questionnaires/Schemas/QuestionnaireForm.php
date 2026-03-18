@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Questionnaires\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 
 class QuestionnaireForm
@@ -18,6 +19,15 @@ class QuestionnaireForm
             Textarea::make('description')
                 ->rows(4)
                 ->columnSpanFull(),
+
+            Select::make('target_role')
+                ->label('For who?')
+                ->options([
+                    'student' => 'Student',
+                    'parent'  => 'Parent',
+                ])
+                ->required()
+                ->default('student'),
         ]);
     }
 }

@@ -10,6 +10,7 @@ class Questionnaire extends Model
     protected $fillable = [
         'title',
         'description',
+        'target_role',
     ];
 
     public function questions()

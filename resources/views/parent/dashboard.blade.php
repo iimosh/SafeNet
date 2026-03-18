@@ -16,7 +16,21 @@
 
             @forelse(auth()->user()->children as $child)
                 <div class="bg-white shadow rounded-2xl p-8">
-                    <h2 class="text-lg font-semibold mb-1">{{ $child->name }}</h2>
+                    <div class="flex items-center justify-between mb-1">
+                        <h2 class="text-lg font-semibold">{{ $child->name }}</h2>
+
+                        @if(auth()->user()->children->count() > 1)
+                            <form method="POST" action="{{ route('parent.remove-child', $child) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        onclick="return confirm('Сигурно сакаш да го отстраниш {{ $child->name }}?')"
+                                        class="text-sm text-red-500 hover:text-red-700">
+                                    Отстрани
+                                </button>
+                            </form>
+                        @endif
+                    </div>
                     <p class="text-sm text-gray-500 mb-4">{{ $child->email }}</p>
 
                     <h3 class="text-md font-medium mb-3">Проценки</h3>
@@ -27,14 +41,26 @@
                                 <p class="font-medium">Проценка #{{ $assessment->id }}</p>
                                 <p class="text-sm text-gray-500">{{ $assessment->created_at->format('d.m.Y') }}</p>
                             </div>
-                            <a href="{{ route('assessment.show', $assessment) }}"
-                               class="text-blue-600 hover:underline text-sm">
-                                Погледни
-                            </a>
+                            <div class="flex gap-2">
+                                <a href="{{ route('assessment.show', $assessment) }}"
+                                   class="text-blue-600 hover:underline text-sm">
+                                    Погледни
+                                </a>
+                                <a href="{{ route('assessment.report', $assessment) }}"
+                                   class="text-emerald-600 hover:underline text-sm">
+                                    Преземи PDF
+                                </a>
+                            </div>
                         </div>
                     @empty
                         <p class="text-gray-500 text-sm">Детето сè уште нема направено проценка.</p>
                     @endforelse
+
+                    <a href="{{ route('questionnaires.index', ['child_id' => $child->id]) }}"
+                       class="inline-block px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm">
+                        Прашалници за {{ $child->name }}
+                    </a>
+
                 </div>
             @empty
                 <div class="bg-white shadow rounded-2xl p-8">

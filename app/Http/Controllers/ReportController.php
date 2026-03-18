@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Assessment;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class ReportController extends Controller
+{
+    public function generate(Assessment $assessment)
+    {
+        $user = auth()->user();
+
+        $canView = match($user->role) {
+            'admin'  => true,
+            'parent' => $user->children->contains('id', $assessment->filled_for_user_id),
+            default  => $assessment->filled_for_user_id === $user->id,
+        };
+
+        abort_if(!$canView, 403);
+
+        $assessment->load('questionnaire', 'answers.question', 'answers.option');
+        $breakdown = collect($assessment->category_breakdown ?? [])->sortDesc();
+
+        $pairedAssessment = null;
+
+        if ($assessment->questionnaire) {
+            $oppositeRole = $assessment->questionnaire->target_role === 'student' ? 'parent' : 'student';
+
+            $pairedQuestionnaire = \App\Models\Questionnaire::where('target_role', $oppositeRole)->latest()->first();
+
+            if ($pairedQuestionnaire) {
+                $pairedAssessment = Assessment::where('filled_for_user_id', $assessment->filled_for_user_id)
+                    ->where('questionnaire_id', $pairedQuestionnaire->id)
+                    ->with('answers.question', 'answers.option')
+                    ->latest()
+                    ->first();
+            }
+        }
+
+        $student = \App\Models\User::find($assessment->filled_for_user_id);
+
+        $pdf = Pdf::loadView('reports.assessment', [
+            'assessment'       => $assessment,
+            'breakdown'        => $breakdown,
+            'pairedAssessment' => null, //za sega
+            'student'          => $student,
+        ]);
+
+        return $pdf->download('report-' . $student->name . '.pdf');
+    }
+}

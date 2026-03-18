@@ -23,8 +23,11 @@ class AssessmentController extends Controller
 
     public function start(Request $request)
     {
-        $questionnaire = Questionnaire::with('questions.options')->latest()->firstOrFail();
+        $questionnaireId = $request->query('questionnaire_id');
 
+        $questionnaire = $questionnaireId
+            ? Questionnaire::with('questions.options')->findOrFail($questionnaireId)
+            : Questionnaire::with('questions.options')->latest()->firstOrFail();
         if (auth()->user()->isParent()) {
             $children = auth()->user()->children;
 
@@ -44,9 +47,28 @@ class AssessmentController extends Controller
                 abort(403);
             }
 
+            $alreadyDone = \App\Models\Assessment::where('filled_for_user_id', $selectedChildId)
+                ->where('questionnaire_id', $questionnaire->id)
+                ->exists();
+
+            if ($alreadyDone) {
+                return redirect()->route('questionnaires.index', ['child_id' => $selectedChildId])
+                    ->withErrors(['error' => 'This questionnaire has already been completed for this child.']);
+            }
+
             return view('questionnaire', compact('questionnaire', 'selectedChildId'));
         }
         $selectedChildId = auth()->id();
+
+        $alreadyDone = \App\Models\Assessment::where('filled_for_user_id', $selectedChildId)
+            ->where('questionnaire_id', $questionnaire->id)
+            ->exists();
+
+        if ($alreadyDone) {
+            return redirect()->route('questionnaires.index')
+                ->withErrors(['error' => 'You have already completed this questionnaire.']);
+        }
+
         return view('questionnaire', compact('questionnaire', 'selectedChildId'));
 
     }
@@ -69,11 +91,15 @@ class AssessmentController extends Controller
         $total = 0;
         $breakdown = [];
 
-        $filledForUserId = $request->input('filled_for_user_id', auth()->id());
+        $filledForUserId = $request->input('filled_for_user_id');
 
-        if (auth()->user()->isParent()) {
-            $child = auth()->user()->children->firstWhere('id', $filledForUserId);
-            if (!$child) abort(403);
+        if (auth()->user()->isParent() && !$filledForUserId) {
+            return redirect()->route('parent.dashboard')
+                ->withErrors(['error' => 'No child selected.']);
+        }
+
+        if (!$filledForUserId) {
+            $filledForUserId = auth()->id();
         }
 
         $assessment = Assessment::create([
@@ -113,7 +139,8 @@ class AssessmentController extends Controller
             'category_breakdown' => $breakdown,
         ]);
 
-        return redirect()->route('assessment.show', $assessment);
+        return redirect()->route('assessment.show', $assessment)
+            ->with('from_role', auth()->user()->role);
     }
 
     public function show(Assessment $assessment)
@@ -134,7 +161,10 @@ class AssessmentController extends Controller
 
         return view('result', [
             'assessment' => $assessment,
-            'breakdown' => $breakdown,
+            'breakdown'  => $breakdown,
+            'backRoute'  => auth()->user()->isParent()
+                ? route('parent.dashboard')
+                : route('dashboard'),
         ]);
     }
 

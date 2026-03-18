@@ -34,4 +34,19 @@ class ParentController extends Controller
 
         return back()->with('success', 'Child added successfully.');
     }
+
+    public function removeChild(\App\Models\User $child)
+    {
+        $parent = auth()->user();
+
+        abort_if(!$parent->children->contains($child->id), 403);
+
+        if ($parent->children->count() <= 1) {
+            return back()->withErrors(['error' => 'Мора да имаш барем едно поврзано дете.']);
+        }
+
+        $parent->children()->detach($child->id);
+
+        return back()->with('success', 'Детето е успешно отстрането.');
+    }
 }

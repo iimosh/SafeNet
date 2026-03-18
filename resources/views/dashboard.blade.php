@@ -15,9 +15,9 @@
                 </p>
 
                 <div class="flex flex-wrap gap-4">
-                    <a href="{{ route('assessment.start') }}"
+                    <a href="{{ route('questionnaires.index') }}"
                        class="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
-                        Започни прашалник
+                        Прашалници
                     </a>
 
                     <a href="{{ route('assessment.index') }}"

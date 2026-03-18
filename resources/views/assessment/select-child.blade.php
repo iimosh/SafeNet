@@ -12,7 +12,7 @@
 
                 <div class="space-y-3">
                     @foreach($children as $child)
-                        <a href="{{ route('assessment.start', ['child_id' => $child->id]) }}"
+                        <a href="{{ route('assessment.start', ['child_id' => $child->id, 'questionnaire_id' => $questionnaire->id]) }}"
                            class="block border rounded-xl p-4 hover:border-blue-500 hover:bg-blue-50 transition">
                             <p class="font-medium">{{ $child->name }}</p>
                             <p class="text-sm text-gray-500">{{ $child->email }}</p>
