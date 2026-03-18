@@ -16,6 +16,13 @@ class QuestionnairesTable
                     ->searchable()
                     ->sortable(),
 
+                Tables\Columns\BadgeColumn::make('target_role')
+                    ->label('For')
+                    ->colors([
+                        'info'    => 'student',
+                        'warning' => 'parent',
+                    ]),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created')
                     ->dateTime()

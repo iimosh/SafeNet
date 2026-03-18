@@ -35,6 +35,12 @@
                     @empty
                         <p class="text-gray-500 text-sm">Детето сè уште нема направено проценка.</p>
                     @endforelse
+
+                    <a href="{{ route('questionnaires.index', ['child_id' => $child->id]) }}"
+                       class="inline-block px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm">
+                        Прашалници за {{ $child->name }}
+                    </a>
+
                 </div>
             @empty
                 <div class="bg-white shadow rounded-2xl p-8">

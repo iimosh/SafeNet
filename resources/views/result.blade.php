@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="mt-6">
-                    <a href="{{ route('dashboard') }}"
+                    <a href="{{ $backRoute }}"
                        class="inline-block px-5 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-700 transition">
                         Back to dashboard
                     </a>
