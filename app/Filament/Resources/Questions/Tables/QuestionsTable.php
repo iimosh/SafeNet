@@ -21,8 +21,9 @@ class QuestionsTable
                     ->searchable()
                     ->wrap(),
 
-                Tables\Columns\TextColumn::make('category')
+                Tables\Columns\TextColumn::make('categoryRelation.name')
                     ->label('Category')
+                    ->searchable()
                     ->sortable(),
             ])
             ->actions([]);

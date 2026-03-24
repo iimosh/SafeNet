@@ -20,9 +20,12 @@ class QuestionForm
                 ->required()
                 ->maxLength(255),
 
-            TextInput::make('category')
-                ->required()
-                ->maxLength(255),
+
+            Select::make('category_id')
+                ->label('Category')
+                ->relationship('categoryRelation', 'name')
+                ->required(),
+
 
         ]);
     }

@@ -21,22 +21,39 @@
                     <input type="hidden" name="questionnaire_id" value="{{ $questionnaire->id }}">
                     <input type="hidden" name="filled_for_user_id" value="{{ $selectedChildId }}">
 
-                    <div class="space-y-8">
-                        @foreach($questionnaire->questions as $question)
-                            <div class="border rounded-xl p-5">
-                                <h3 class="font-semibold text-lg mb-4">
-                                    {{ $loop->iteration }}. {{ $question->question_text }}
-                                </h3>
 
-                                <div class="space-y-3">
-                                    @foreach($question->options as $option)
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <input type="radio"
-                                                   name="answers[{{ $question->id }}]"
-                                                   value="{{ $option->id }}"
-                                                   required>
-                                            <span>{{ $option->option_text }}</span>
-                                        </label>
+                    <div class="space-y-8">
+                        @foreach($questionnaire->categories as $category)
+                            <div class="mb-8">
+                                <h2 class="text-xl font-bold mb-2">
+                                    {{ $category->name }}
+                                </h2>
+
+                                @if($category->description)
+                                    <p class="text-gray-600 mb-4">
+                                        {{ $category->description }}
+                                    </p>
+                                @endif
+
+                                <div class="space-y-6">
+                                    @foreach($category->questions as $question)
+                                        <div class="border rounded-xl p-5">
+                                            <h3 class="font-semibold text-lg mb-4">
+                                                {{ $question->question_text }}
+                                            </h3>
+
+                                            <div class="space-y-3">
+                                                @foreach($question->options as $option)
+                                                    <label class="flex items-center gap-3 cursor-pointer">
+                                                        <input type="radio"
+                                                               name="answers[{{ $question->id }}]"
+                                                               value="{{ $option->id }}"
+                                                               required>
+                                                        <span>{{ $option->option_text }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
                                     @endforeach
                                 </div>
                             </div>

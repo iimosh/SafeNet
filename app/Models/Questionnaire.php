@@ -22,4 +22,8 @@ class Questionnaire extends Model
     {
         return $this->hasMany(Assessment::class);
     }
+    public function categories()
+    {
+        return $this->hasMany(Category::class)->orderBy('sort_order');
+    }
 }

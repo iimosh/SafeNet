@@ -27,7 +27,9 @@ class AssessmentController extends Controller
 
         $questionnaire = $questionnaireId
             ? Questionnaire::with('questions.options')->findOrFail($questionnaireId)
-            : Questionnaire::with('questions.options')->latest()->firstOrFail();
+            : Questionnaire::with(['categories.questions.options'])->latest()->firstOrFail();
+
+
         if (auth()->user()->isParent()) {
             $children = auth()->user()->children;
 
@@ -76,20 +78,19 @@ class AssessmentController extends Controller
     public function submit(Request $request)
     {
         $questionnaireId = $request->input('questionnaire_id');
-        $questionnaire = Questionnaire::with('questions.options')->findOrFail($questionnaireId);
+        $questionnaire = Questionnaire::with(['categories.questions.options'])->findOrFail($questionnaireId);
 
         $answers = $request->input('answers', []);
 
-        foreach ($questionnaire->questions as $question) {
+        $allQuestions = $questionnaire->categories->flatMap->questions;
+
+        foreach ($allQuestions as $question) {
             if (!isset($answers[$question->id])) {
                 return back()
                     ->withErrors(['answers' => 'Please answer all questions.'])
                     ->withInput();
             }
         }
-
-        $total = 0;
-        $breakdown = [];
 
         $filledForUserId = $request->input('filled_for_user_id');
 
@@ -102,41 +103,71 @@ class AssessmentController extends Controller
             $filledForUserId = auth()->id();
         }
 
+        $total = 0;
+        $maxPoints = 0;
+        $categoryBreakdown = [];
+
         $assessment = Assessment::create([
             'user_id' => auth()->id(),
             'filled_for_user_id' => $filledForUserId,
             'questionnaire_id' => $questionnaire->id,
             'total_points' => 0,
+            'max_points' => 0,
             'risk_level' => 'low',
-            'category_breakdown' => null,
+            'global_recommendation' => null,
+            'category_breakdown' => [],
         ]);
 
-        foreach ($questionnaire->questions as $question) {
-            $optionId = (int)$answers[$question->id];
+        foreach ($questionnaire->categories as $category) {
+            $categoryScore = 0;
+            $categoryMax = 0;
 
-            $option = Option::where('id', $optionId)
-                ->where('question_id', $question->id)
-                ->firstOrFail();
+            foreach ($category->questions as $question) {
+                $optionId = (int) $answers[$question->id];
 
-            $points = (int)$option->risk_points;
-            $total += $points;
+                $option = Option::where('id', $optionId)
+                    ->where('question_id', $question->id)
+                    ->firstOrFail();
 
-            $category = $question->category ?? 'general';
-            $breakdown[$category] = ($breakdown[$category] ?? 0) + $points;
+                $points = (int) $option->risk_points;
+                $questionMax = (int) $question->options->max('risk_points');
 
-            AssessmentAnswer::create([
-                'assessment_id' => $assessment->id,
-                'question_id' => $question->id,
-                'option_id' => $option->id,
-                'points' => $points,
-                'category' => $category,
-            ]);
+                $categoryScore += $points;
+                $categoryMax += $questionMax;
+                $total += $points;
+                $maxPoints += $questionMax;
+
+                AssessmentAnswer::create([
+                    'assessment_id' => $assessment->id,
+                    'question_id' => $question->id,
+                    'option_id' => $option->id,
+                    'points' => $points,
+                    'category' => $category->name,
+                ]);
+            }
+
+            $categoryRisk = $this->resolveRiskLevel($categoryScore, $categoryMax);
+            $categoryRecommendation = $this->getCategoryRecommendation($questionnaire->id, $category->id, $categoryRisk);
+
+            $categoryBreakdown[] = [
+                'category_id' => $category->id,
+                'category_name' => $category->name,
+                'score' => $categoryScore,
+                'max_score' => $categoryMax,
+                'risk_level' => $categoryRisk,
+                'recommendation' => $categoryRecommendation,
+            ];
         }
+
+        $globalRisk = $this->resolveRiskLevel($total, $maxPoints);
+        $globalRecommendation = $this->getGlobalRecommendation($questionnaire->id, $globalRisk);
 
         $assessment->update([
             'total_points' => $total,
-            'risk_level' => $this->riskLevel($total),
-            'category_breakdown' => $breakdown,
+            'max_points' => $maxPoints,
+            'risk_level' => $globalRisk,
+            'global_recommendation' => $globalRecommendation,
+            'category_breakdown' => $categoryBreakdown,
         ]);
 
         return redirect()->route('assessment.show', $assessment)
@@ -157,7 +188,7 @@ class AssessmentController extends Controller
 
         $assessment->load('questionnaire', 'answers.question', 'answers.option');
 
-        $breakdown = collect($assessment->category_breakdown ?? [])->sortDesc();
+        $breakdown = collect($assessment->category_breakdown ?? []);
 
         return view('result', [
             'assessment' => $assessment,
@@ -175,5 +206,39 @@ class AssessmentController extends Controller
             $points <= 50 => 'medium',
             default => 'high',
         };
+    }
+    private function resolveRiskLevel(int $score, int $maxScore): string
+    {
+        if ($maxScore === 0) {
+            return 'low';
+        }
+
+        $percentage = ($score / $maxScore) * 100;
+
+        return match (true) {
+            $percentage <= 30 => 'low',
+            $percentage <= 60 => 'medium',
+            default => 'high',
+        };
+    }
+
+    private function getCategoryRecommendation(int $questionnaireId, int $categoryId, string $riskLevel): string
+    {
+        $recommendation = \App\Models\Recommendation::where('questionnaire_id', $questionnaireId)
+            ->where('category_id', $categoryId)
+            ->where('risk_level', $riskLevel)
+            ->first();
+
+        return $recommendation?->text ?? 'Нема дефинирана препорака за оваа категорија.';
+    }
+
+    private function getGlobalRecommendation(int $questionnaireId, string $riskLevel): string
+    {
+        $recommendation = \App\Models\Recommendation::where('questionnaire_id', $questionnaireId)
+            ->where('is_global', true)
+            ->where('risk_level', $riskLevel)
+            ->first();
+
+        return $recommendation?->text ?? 'Нема дефинирана глобална препорака.';
     }
 }

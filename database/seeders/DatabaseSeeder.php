@@ -56,7 +56,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $this->seedStudentQuestions($studentQuestionnaire);
+//        $this->seedStudentQuestions($studentQuestionnaire);
 
         $parentQuestionnaire = Questionnaire::firstOrCreate(
             ['title' => 'Онлајн навики - Родител'],
@@ -66,7 +66,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $this->seedParentQuestions($parentQuestionnaire);
+//        $this->seedParentQuestions($parentQuestionnaire);
+
+        $this->call([
+            CategorySeeder::class,
+            QuestionnaireContentSeeder::class,
+            RecommendationSeeder::class,
+        ]);
     }
 
     private function seedStudentQuestions(Questionnaire $questionnaire): void

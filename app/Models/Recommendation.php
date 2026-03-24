@@ -1,17 +1,19 @@
 <?php
 
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Question extends Model
+class Recommendation extends Model
 {
     protected $fillable = [
         'questionnaire_id',
         'category_id',
-        'question_text',
-        'category',
+        'audience',
+        'risk_level',
+        'is_global',
+        'title',
+        'text',
     ];
 
     public function questionnaire()
@@ -19,13 +21,8 @@ class Question extends Model
         return $this->belongsTo(Questionnaire::class);
     }
 
-    public function categoryRelation()
+    public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id');
-    }
-
-    public function options()
-    {
-        return $this->hasMany(Option::class);
+        return $this->belongsTo(Category::class);
     }
 }
