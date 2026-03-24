@@ -51,7 +51,6 @@
     Вкупни поени: <strong>{{ $assessment->total_points }}</strong> &nbsp;|&nbsp;
     Ниво: <span class="badge {{ $assessment->risk_level }}">{{ ucfirst($assessment->risk_level) }}</span>
 </p>
-
 <h2>Распределба по категории</h2>
 @if($breakdown->isNotEmpty())
     <table>
@@ -59,13 +58,17 @@
         <tr>
             <th>Категорија</th>
             <th>Поени</th>
+            <th>Ризик</th>
+            <th>Препорака</th>
         </tr>
         </thead>
         <tbody>
-        @foreach($breakdown as $category => $points)
+        @foreach($breakdown as $item)
             <tr>
-                <td>{{ ucfirst($category) }}</td>
-                <td>{{ $points }}</td>
+                <td>{{ $item['category_name'] ?? '-' }}</td>
+                <td>{{ $item['score'] ?? 0 }} / {{ $item['max_score'] ?? 0 }}</td>
+                <td>{{ ucfirst($item['risk_level'] ?? '-') }}</td>
+                <td>{{ $item['recommendation'] ?? '-' }}</td>
             </tr>
         @endforeach
         </tbody>
@@ -74,15 +77,8 @@
     <p>Нема податоци по категории.</p>
 @endif
 
-{{-- Recommendation --}}
-<h2>Препорака</h2>
-@if($assessment->risk_level === 'low')
-    <p>Имаш ниско ниво на ризик. Продолжи со добри дигитални навики и внимавај на приватност, лозинки и безбедна комуникација.</p>
-@elseif($assessment->risk_level === 'medium')
-    <p>Имаш средно ниво на ризик. Потребно е подобрување на лозинките, внимателност на социјални мрежи и подобра заштита на личните податоци.</p>
-@else
-    <p>Имаш високо ниво на ризик. Потребно е веднаш да се подобрат навиките за приватност, комуникација со непознати лица и препознавање на опасни онлајн ситуации.</p>
-@endif
+<h2>Глобална препорака</h2>
+<p>{{ $assessment->global_recommendation ?? 'Нема достапна препорака.' }}</p>
 
 @if($pairedAssessment)
     <h2>Споредба: Ученик vs Родител</h2>

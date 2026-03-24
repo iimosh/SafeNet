@@ -12,7 +12,9 @@ class Assessment extends Model
         'filled_for_user_id',
         'questionnaire_id',
         'total_points',
+        'max_points',
         'risk_level',
+        'global_recommendation',
         'category_breakdown',
     ];
 

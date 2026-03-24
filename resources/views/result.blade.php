@@ -25,36 +25,71 @@
                 <h2 class="text-xl font-semibold mb-4">Распределба по категории</h2>
 
                 <div class="space-y-3 mb-8">
-                    @forelse($breakdown as $category => $points)
-                        <div class="flex items-center justify-between border rounded-lg p-4">
-                            <span class="font-medium capitalize">{{ $category }}</span>
-                            <span class="font-bold">{{ $points }} pts</span>
+
+                    <div class="mb-8 space-y-4">
+                        @foreach($breakdown as $item)
+                            @php
+                                $percentage = $item['max_score'] > 0
+                                    ? round(($item['score'] / $item['max_score']) * 100)
+                                    : 0;
+                            @endphp
+
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="font-medium">{{ $item['category_name'] }}</span>
+                                    <span class="text-sm text-gray-600">
+                    {{ $percentage }}%
+                </span>
+                                </div>
+
+                                <div class="w-full bg-gray-200 rounded-full h-4">
+                                    @php
+                                        $color = match($item['risk_level']) {
+                                            'low' => '#22c55e',
+                                            'medium' => '#eab308',
+                                            'high' => '#ef4444',
+                                            default => '#9ca3af'
+                                        };
+                                    @endphp
+
+                                    <div class="w-full bg-gray-200 rounded-full h-4">
+                                        <div
+                                            class="h-4 rounded-full"
+                                            style="width: {{ $percentage }}%; background-color: {{ $color }};">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @forelse($breakdown as $item)
+                        <div class="border rounded-lg p-4 mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-semibold">{{ $item['category_name'] }}</span>
+                                <span class="font-bold">
+                {{ $item['score'] }} / {{ $item['max_score'] }}
+            </span>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-sm text-gray-500">Ниво на ризик:</span>
+                                <span class="font-medium capitalize">{{ $item['risk_level'] }}</span>
+                            </div>
+
+                            <div class="text-gray-700 text-sm">
+                                {{ $item['recommendation'] }}
+                            </div>
                         </div>
                     @empty
                         <p class="text-gray-500">Нема податоци по категории.</p>
                     @endforelse
                 </div>
-
                 <div class="rounded-xl bg-blue-50 p-6">
-                    <h3 class="font-semibold text-lg mb-3">Препорака</h3>
-
-                    @if($assessment->risk_level === 'low')
-                        <p class="text-gray-700">
-                            Имаш ниско ниво на ризик. Продолжи со добри дигитални навики
-                            и внимавај на приватност, лозинки и безбедна комуникација.
-                        </p>
-                    @elseif($assessment->risk_level === 'medium')
-                        <p class="text-gray-700">
-                            Имаш средно ниво на ризик. Потребно е подобрување на лозинките,
-                            внимателност на социјални мрежи и подобра заштита на личните податоци.
-                        </p>
-                    @else
-                        <p class="text-gray-700">
-                            Имаш високо ниво на ризик. Потребно е веднаш да се подобрат
-                            навиките за приватност, комуникација со непознати лица и
-                            препознавање на опасни онлајн ситуации.
-                        </p>
-                    @endif
+                    <h3 class="font-semibold text-lg mb-3">Глобална препорака</h3>
+                    <p class="text-gray-700">
+                        {{ $assessment->global_recommendation }}
+                    </p>
                 </div>
 
                 <div class="mt-6 flex gap-3">

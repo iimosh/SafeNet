@@ -9,6 +9,7 @@ class Question extends Model
 {
     protected $fillable = [
         'questionnaire_id',
+        'category_id',
         'question_text',
         'category',
     ];
@@ -16,6 +17,11 @@ class Question extends Model
     public function questionnaire()
     {
         return $this->belongsTo(Questionnaire::class);
+    }
+
+    public function categoryRelation()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     public function options()
