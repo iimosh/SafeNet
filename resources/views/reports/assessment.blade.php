@@ -6,7 +6,7 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 13px;
-            color: #1a1a1a;
+            color: #1e293b;
             margin: 40px;
         }
         h1 { font-size: 22px; margin-bottom: 4px; }
@@ -19,9 +19,6 @@
             font-weight: bold;
             font-size: 13px;
         }
-        .low    { background: #dcfce7; color: #166534; }
-        .medium { background: #fef9c3; color: #854d0e; }
-        .high   { background: #fee2e2; color: #991b1b; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -33,8 +30,6 @@
             border-bottom: 1px solid #e5e7eb;
         }
         th { background: #f9fafb; font-weight: bold; }
-        .comparison-match    { color: #166534; }
-        .comparison-mismatch { color: #991b1b; }
         .footer { margin-top: 40px; font-size: 11px; color: #999; text-align: center; }
     </style>
 </head>
@@ -79,44 +74,6 @@
 
 <h2>Глобална препорака</h2>
 <p>{{ $assessment->global_recommendation ?? 'Нема достапна препорака.' }}</p>
-
-@if($pairedAssessment)
-    <h2>Споредба: Ученик vs Родител</h2>
-    <table>
-        <thead>
-        <tr>
-            <th>Прашање</th>
-            <th>Одговор на ученик</th>
-            <th>Одговор на родител</th>
-            <th>Совпаѓање</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach($assessment->answers as $answer)
-            @php
-                $paired = $pairedAssessment->answers
-                    ->firstWhere('question_id', $answer->question_id);
-            @endphp
-            @if($paired)
-                <tr>
-                    <td>{{ $answer->question->question_text }}</td>
-                    <td>{{ $answer->option->option_text }}</td>
-                    <td>{{ $paired->option->option_text }}</td>
-                    <td>
-                        @if($answer->option_id === $paired->option_id)
-                            <span class="comparison-match">✓ Да</span>
-                        @else
-                            <span class="comparison-mismatch">✗ Не</span>
-                        @endif
-                    </td>
-                </tr>
-            @endif
-        @endforeach
-        </tbody>
-    </table>
-@else
-    <p style="color:#666; font-style:italic;">Родителот сè уште не го пополнил прашалникот за овој ученик. Споредбата не е достапна.</p>
-@endif
 
 <div class="footer">
     SafeNet — Извештај генериран на {{ now()->format('d.m.Y H:i') }}

@@ -26,12 +26,12 @@
             @guest
                 <a href="{{ route('register') }}"
                    class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 transition font-semibold">
-                    Register
+                    Регистрирај се
                 </a>
 
                 <a href="{{ route('login') }}"
                    class="px-6 py-3 rounded-xl border border-slate-600 hover:bg-slate-800 transition font-semibold">
-                    Login
+                    Најави се
                 </a>
             @endguest
 

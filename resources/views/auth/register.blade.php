@@ -1,89 +1,294 @@
 <x-guest-layout>
-    <div class="max-w-md mx-auto">
+
+    <div class="max-w-2xl mx-auto">
+
+
         <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold text-gray-900">Регистрирај се</h2>
-            <p class="text-sm text-gray-500 mt-2">Изберете го типот на вашиот профил за да започнете со SafeNet.</p>
+
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl
+                        bg-gradient-to-r from-primary to-secondary shadow-xl mb-5">
+
+                <span class="text-4xl">🛡️</span>
+
+            </div>
+
+            <h2 class="text-3xl font-black text-slate-800 mb-2">
+                Креирај профил
+            </h2>
+
+            <p class="text-slate-500 max-w-xl mx-auto">
+                Изберете тип на профил и започнете со користење на MKSafeNet
+                платформата за дигитална безбедност.
+            </p>
+
         </div>
 
         <form method="POST" action="{{ route('register') }}">
+
             @csrf
 
-            <div class="mb-8">
-                <div class="grid grid-cols-2 gap-4">
-                    <button type="button" onclick="selectRole('student')" id="btn-student"
-                            class="role-btn group relative flex flex-col items-center justify-center p-6 border-2 border-gray-200 rounded-2xl bg-white transition-all duration-200 hover:border-indigo-300 hover:shadow-md cursor-pointer focus:outline-none">
-                        <span class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">🎓</span>
-                        <span class="text-sm font-semibold text-gray-800">Студент</span>
-                        <div class="indicator absolute top-3 right-3 opacity-0 transition-opacity duration-200 text-indigo-600">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                        </div>
-                    </button>
 
-                    <button type="button" onclick="selectRole('parent')" id="btn-parent"
-                            class="role-btn group relative flex flex-col items-center justify-center p-6 border-2 border-gray-200 rounded-2xl bg-white transition-all duration-200 hover:border-indigo-300 hover:shadow-md cursor-pointer focus:outline-none">
-                        <span class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">👨‍👧</span>
-                        <span class="text-sm font-semibold text-gray-800">Родител</span>
-                        <div class="indicator absolute top-3 right-3 opacity-0 transition-opacity duration-200 text-indigo-600">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+
+
+                <button type="button"
+                        onclick="selectRole('student')"
+                        id="btn-student"
+
+                        class="role-btn relative overflow-hidden group
+                               bg-white/90 backdrop-blur-xl border border-slate-200
+                               rounded-3xl p-8 shadow-lg hover:shadow-2xl
+                               hover:-translate-y-1 transition duration-300">
+
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-blue-100/40 rounded-full blur-3xl"></div>
+
+                    <div class="relative z-10 text-center">
+
+                        <div class="text-5xl mb-4 group-hover:scale-110 transition duration-300">
+                            🎓
                         </div>
-                    </button>
-                </div>
-                <input type="hidden" name="role" id="role-input" value="{{ old('role') }}" />
-                <x-input-error :messages="$errors->get('role')" class="mt-2 text-center" />
+
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">
+                            Ученик
+                        </h3>
+
+                        <p class="text-sm text-slate-500">
+                            Пополнување прашалници и следење на проценки.
+                        </p>
+
+                        <div class="indicator absolute top-4 right-4 opacity-0 transition duration-300 text-primary">
+
+                            <svg class="w-6 h-6"
+                                 fill="currentColor"
+                                 viewBox="0 0 20 20">
+
+                                <path fill-rule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                      clip-rule="evenodd"/>
+
+                            </svg>
+
+                        </div>
+
+                    </div>
+
+                </button>
+
+                <button type="button"
+                        onclick="selectRole('parent')"
+                        id="btn-parent"
+
+                        class="role-btn relative overflow-hidden group
+                               bg-white/90 backdrop-blur-xl border border-slate-200
+                               rounded-3xl p-8 shadow-lg hover:shadow-2xl
+                               hover:-translate-y-1 transition duration-300">
+
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-cyan-100/40 rounded-full blur-3xl"></div>
+
+                    <div class="relative z-10 text-center">
+
+                        <div class="text-5xl mb-4 group-hover:scale-110 transition duration-300">
+                            👨‍👧
+                        </div>
+
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">
+                            Родител
+                        </h3>
+
+                        <p class="text-sm text-slate-500">
+                            Следење активности и проценки на дете.
+                        </p>
+
+                        <div class="indicator absolute top-4 right-4 opacity-0 transition duration-300 text-primary">
+
+                            <svg class="w-6 h-6"
+                                 fill="currentColor"
+                                 viewBox="0 0 20 20">
+
+                                <path fill-rule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                      clip-rule="evenodd"/>
+
+                            </svg>
+
+                        </div>
+
+                    </div>
+
+                </button>
+
             </div>
 
-            <div id="form-fields" class="{{ old('role') ? 'block' : 'hidden' }} space-y-5 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm transition-all duration-500">
+            <input type="hidden" name="role" id="role-input" value="{{ old('role') }}"/>
 
-                <div>
-                    <x-input-label for="name" :value="__('Целосно име')" class="text-gray-700 font-medium" />
-                    <x-text-input id="name" class="block mt-1.5 w-full" type="text" name="name" :value="old('name')" required autofocus />
-                    <x-input-error :messages="$errors->get('name')" class="mt-2" />
-                </div>
+            <x-input-error :messages="$errors->get('role')" class="mb-5 text-center"/>
 
-                <div>
-                    <x-input-label for="email" :value="__('Е-маил адреса')" class="text-gray-700 font-medium" />
-                    <x-text-input id="email" class="block mt-1.5 w-full" type="email" name="email" :value="old('email')" required />
-                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                </div>
+            <div id="form-fields"
+                 class="{{ old('role') ? 'block' : 'hidden' }}
+                        relative overflow-hidden bg-white/90 backdrop-blur-xl
+                        border border-white/40 shadow-2xl rounded-3xl p-8 transition-all duration-500">
 
-                <div id="child-email-field" class="{{ old('role') === 'parent' ? 'block' : 'hidden' }} border-l-4 border-indigo-500 pl-4 py-1 bg-indigo-50/30 rounded-r-lg">
-                    <x-input-label for="child_email" :value="__('Е-маил на вашето дете')" class="text-indigo-900 font-medium" />
-                    <x-text-input id="child_email" class="block mt-1.5 w-full border-indigo-200" type="email" name="child_email" :value="old('child_email')" placeholder="example@student.com" />
-                    <p class="text-xs text-gray-500 mt-1.5 italic">Внесете го е-маилот со кој вашето дете веќе е регистрирано на SafeNet.</p>
-                    <x-input-error :messages="$errors->get('child_email')" class="mt-2" />
-                </div>
+                <div class="absolute bottom-0 left-0 w-56 h-56 bg-blue-100/30 rounded-full blur-3xl"></div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                <div class="relative z-10 space-y-5">
+
                     <div>
-                        <x-input-label for="password" :value="__('Лозинка')" class="text-gray-700 font-medium" />
-                        <x-text-input id="password" class="block mt-1.5 w-full" type="password" name="password" required />
+
+                        <x-input-label
+                            for="name"
+                            :value="__('Целосно име')"
+                            class="text-slate-700 font-medium"
+                        />
+
+                        <x-text-input
+                            id="name"
+                            class="block mt-2 w-full rounded-2xl border-slate-200
+                                   focus:border-primary focus:ring-primary py-3"
+                            type="text"
+                            name="name"
+                            :value="old('name')"
+                            required
+                            autofocus
+                        />
+
+                        <x-input-error :messages="$errors->get('name')" class="mt-2"/>
+
                     </div>
+
                     <div>
-                        <x-input-label for="password_confirmation" :value="__('Потврди')" class="text-gray-700 font-medium" />
-                        <x-text-input id="password_confirmation" class="block mt-1.5 w-full" type="password" name="password_confirmation" required />
+
+                        <x-input-label
+                            for="email"
+                            :value="__('Е-маил адреса')"
+                            class="text-slate-700 font-medium"
+                        />
+
+                        <x-text-input
+                            id="email"
+                            class="block mt-2 w-full rounded-2xl border-slate-200
+                                   focus:border-primary focus:ring-primary py-3"
+                            type="email"
+                            name="email"
+                            :value="old('email')"
+                            required
+                        />
+
+                        <x-input-error :messages="$errors->get('email')" class="mt-2"/>
+
                     </div>
+
+                    <!-- CHILD EMAIL -->
+                    <div id="child-email-field"
+                         class="{{ old('role') === 'parent' ? 'block' : 'hidden' }}
+                                rounded-2xl bg-blue-50 border border-blue-100 p-5">
+
+                        <x-input-label
+                            for="child_email"
+                            :value="__('Е-маил на детето')"
+                            class="text-primary font-semibold"
+                        />
+
+                        <x-text-input
+                            id="child_email"
+                            class="block mt-2 w-full rounded-2xl border-blue-200
+                                   focus:border-primary focus:ring-primary py-3"
+                            type="email"
+                            name="child_email"
+                            :value="old('child_email')"
+                            placeholder="example@student.com"
+                        />
+
+                        <p class="text-xs text-slate-500 mt-2">
+                            Детето треба претходно да биде регистрирано.
+                        </p>
+
+                        <x-input-error :messages="$errors->get('child_email')" class="mt-2"/>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                        <div>
+
+                            <x-input-label
+                                for="password"
+                                :value="__('Лозинка')"
+                                class="text-slate-700 font-medium"
+                            />
+
+                            <x-text-input
+                                id="password"
+                                class="block mt-2 w-full rounded-2xl border-slate-200
+                                       focus:border-primary focus:ring-primary py-3"
+                                type="password"
+                                name="password"
+                                required
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <x-input-label
+                                for="password_confirmation"
+                                :value="__('Потврди лозинка')"
+                                class="text-slate-700 font-medium"
+                            />
+
+                            <x-text-input
+                                id="password_confirmation"
+                                class="block mt-2 w-full rounded-2xl border-slate-200
+                                       focus:border-primary focus:ring-primary py-3"
+                                type="password"
+                                name="password_confirmation"
+                                required
+                            />
+
+                        </div>
+
+                    </div>
+
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-5">
+
+                        <a class="text-sm font-medium text-slate-500 hover:text-primary transition"
+                           href="{{ route('login') }}">
+
+                            Веќе имате профил?
+
+                        </a>
+
+                        <button type="submit"
+                                class="px-8 py-3.5 rounded-2xl text-white font-bold
+                                       bg-gradient-to-r from-primary to-secondary
+                                       hover:scale-105 hover:shadow-2xl
+                                       transition duration-300">
+
+                            Креирај профил
+
+                        </button>
+
+                    </div>
+
                 </div>
 
-                <div class="flex items-center justify-between mt-8 pt-4">
-                    <a class="text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors" href="{{ route('login') }}">
-                        {{ __('Веќе сте регистрирани?') }}
-                    </a>
-                    <x-primary-button class="px-8 py-3 bg-indigo-600 rounded-xl shadow-md">
-                        {{ __('Креирај сметка') }}
-                    </x-primary-button>
-                </div>
             </div>
+
         </form>
+
     </div>
 
     <script>
+
         function selectRole(role) {
+
             document.getElementById('role-input').value = role;
 
             const formFields = document.getElementById('form-fields');
             formFields.classList.remove('hidden');
 
             const childField = document.getElementById('child-email-field');
+
             if (role === 'parent') {
                 childField.classList.remove('hidden');
             } else {
@@ -94,21 +299,48 @@
         }
 
         function highlightButton(role) {
+
             document.querySelectorAll('.role-btn').forEach(btn => {
-                btn.classList.remove('border-indigo-600', 'ring-1', 'ring-indigo-600', 'bg-indigo-50/50');
-                btn.classList.add('border-gray-200', 'bg-white');
+
+                btn.classList.remove(
+                    'border-primary',
+                    'ring-2',
+                    'ring-primary',
+                    'bg-blue-50/40'
+                );
+
+                btn.classList.add(
+                    'border-slate-200'
+                );
+
                 btn.querySelector('.indicator').classList.add('opacity-0');
+
             });
 
             const selected = document.getElementById('btn-' + role);
-            selected.classList.remove('border-gray-200', 'bg-white');
-            selected.classList.add('border-indigo-600', 'ring-1', 'ring-indigo-600', 'bg-indigo-50/50');
+
+            selected.classList.remove('border-slate-200');
+
+            selected.classList.add(
+                'border-primary',
+                'ring-2',
+                'ring-primary',
+                'bg-blue-50/40'
+            );
+
             selected.querySelector('.indicator').classList.remove('opacity-0');
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+
             const existing = document.getElementById('role-input').value;
-            if (existing) selectRole(existing);
+
+            if (existing) {
+                selectRole(existing);
+            }
+
         });
+
     </script>
+
 </x-guest-layout>
