@@ -203,6 +203,47 @@
 
             @endforelse
 
+            @php
+                $pendingInvites = auth()->user()->sentInvitations()
+                    ->where('status', \App\Models\ParentChildInvitation::STATUS_PENDING)
+                    ->get()
+                    ->filter(fn($i) => $i->isPending());
+            @endphp
+
+            @if($pendingInvites->isNotEmpty())
+                <div class="bg-white/80 backdrop-blur-xl border border-amber-200 shadow-xl rounded-3xl p-8">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-black text-slate-800 mb-1">Покани во тек</h2>
+                        <p class="text-slate-500 text-sm">Овие покани чекаат прифаќање од детето.</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        @foreach($pendingInvites as $invite)
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                                <div>
+                                    <p class="font-semibold text-slate-800">{{ $invite->child_email }}</p>
+                                    <p class="text-xs text-slate-500">
+                                        Испратена {{ $invite->created_at->format('d.m.Y H:i') }}
+                                        @if($invite->expires_at)
+                                            · важи до {{ $invite->expires_at->format('d.m.Y') }}
+                                        @endif
+                                    </p>
+                                </div>
+                                <form method="POST" action="{{ route('parent.invitation.cancel', $invite) }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            onclick="return confirm('Откажи ја поканата?')"
+                                            class="px-4 py-2 rounded-xl bg-red-100 text-red-700 hover:bg-red-200 transition text-sm font-semibold">
+                                        Откажи
+                                    </button>
+                                </form>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <div class="relative overflow-hidden bg-gradient-to-r from-primary via-secondary to-accent rounded-3xl shadow-2xl p-8 text-white">
 
                 <div class="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
@@ -212,12 +253,12 @@
                     <div class="mb-6">
 
                         <h2 class="text-3xl font-black mb-2">
-                            Додај ученик
+                            Покани ученик
                         </h2>
 
                         <p class="text-white/80 max-w-2xl">
-                            Поврзи постоечки ученик преку неговата е-маил адреса
-                            за да можеш да ги следиш неговите проценки.
+                            Внеси ја е-маил адресата на детето. Ќе му пратиме покана
+                            која мора да ја прифати од својот профил пред да го поврземе.
                         </p>
 
                     </div>
@@ -255,7 +296,7 @@
                                     class="px-8 py-4 bg-white text-slate-900 font-bold rounded-2xl
                                hover:scale-105 hover:shadow-2xl transition duration-300">
 
-                                Додај ученик
+                                Прати покана
 
                             </button>
 

@@ -5,11 +5,12 @@ namespace App\Models;
 
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -45,6 +46,18 @@ class User extends Authenticatable implements FilamentUser
     public function assessmentsFor()
     {
         return $this->hasMany(Assessment::class, 'filled_for_user_id');
+    }
+
+    public function sentInvitations()
+    {
+        return $this->hasMany(ParentChildInvitation::class, 'parent_id')->latest();
+    }
+
+    public function pendingInvitationsForMe()
+    {
+        return $this->hasMany(ParentChildInvitation::class, 'child_user_id')
+            ->where('status', ParentChildInvitation::STATUS_PENDING)
+            ->latest();
     }
 
     public function children()

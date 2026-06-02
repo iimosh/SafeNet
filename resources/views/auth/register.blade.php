@@ -21,14 +21,39 @@
                 платформата за дигитална безбедност.
             </p>
 
+            <p class="text-sm text-slate-500 mt-4">
+                Веќе имаш профил?
+                <a href="{{ route('login') }}" class="font-semibold text-primary hover:underline">
+                    Најави се
+                </a>
+            </p>
+
         </div>
+
+        @isset($invitation)
+            @if($invitation)
+                <div class="mb-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 p-5">
+                    <p class="font-bold mb-1">Поканет/а си како дете на {{ $invitation->parent->name }}</p>
+                    <p class="text-sm">
+                        Е-маилот и улогата се пополнети автоматски — по регистрацијата ќе бидеш поврзан/а
+                        со профилот на родителот.
+                    </p>
+                </div>
+            @endif
+        @endisset
 
         <form method="POST" action="{{ route('register') }}">
 
             @csrf
 
+            @isset($invitation)
+                @if($invitation)
+                    <input type="hidden" name="invite_token" value="{{ $invitation->token }}">
+                    <input type="hidden" name="role" value="student">
+                @endif
+            @endisset
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 {{ ($invitation ?? null) ? 'hidden' : '' }}">
 
 
                 <button type="button"
@@ -119,12 +144,17 @@
 
             </div>
 
-            <input type="hidden" name="role" id="role-input" value="{{ old('role') }}"/>
+            @if(empty($invitation))
+                <input type="hidden" name="role" id="role-input" value="{{ old('role') }}"/>
+            @else
+                {{-- role already submitted as student via hidden input above --}}
+                <input type="hidden" id="role-input" value="student"/>
+            @endif
 
             <x-input-error :messages="$errors->get('role')" class="mb-5 text-center"/>
 
             <div id="form-fields"
-                 class="{{ old('role') ? 'block' : 'hidden' }}
+                 class="{{ (old('role') || ($invitation ?? null)) ? 'block' : 'hidden' }}
                         relative overflow-hidden bg-white/90 backdrop-blur-xl
                         border border-white/40 shadow-2xl rounded-3xl p-8 transition-all duration-500">
 
@@ -166,11 +196,13 @@
                         <x-text-input
                             id="email"
                             class="block mt-2 w-full rounded-2xl border-slate-200
-                                   focus:border-primary focus:ring-primary py-3"
+                                   focus:border-primary focus:ring-primary py-3
+                                   {{ ($invitation ?? null) ? 'bg-slate-100' : '' }}"
                             type="email"
                             name="email"
-                            :value="old('email')"
+                            :value="old('email', $invitation?->child_email)"
                             required
+                            :readonly="(bool) ($invitation ?? null)"
                         />
 
                         <x-input-error :messages="$errors->get('email')" class="mt-2"/>
@@ -226,6 +258,12 @@
                                 required
                             />
 
+                            <p class="text-xs text-slate-500 mt-2">
+                                Најмалку 10 знаци, голема и мала буква, број и специјален знак.
+                            </p>
+
+                            <x-input-error :messages="$errors->get('password')" class="mt-2"/>
+
                         </div>
 
                         <div>
@@ -244,6 +282,8 @@
                                 name="password_confirmation"
                                 required
                             />
+
+                            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2"/>
 
                         </div>
 

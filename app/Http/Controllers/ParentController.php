@@ -2,40 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ParentChildInvitation;
 use App\Models\User;
+use App\Notifications\ParentChildInvitationNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class ParentController extends Controller
 {
     public function addChild(Request $request)
     {
         $request->validate([
-            'child_email' => [
-                'required',
-                'email',
-                function ($attribute, $value, $fail) {
-                    $student = User::where('email', $value)
-                        ->where('role', 'student')
-                        ->first();
-                    if (!$student) {
-                        $fail('No student account found with this email.');
-                    }
-                }
-            ],
+            'child_email' => ['required', 'email:rfc'],
         ]);
 
-        $student = User::where('email', $request->child_email)->first();
+        $parent = auth()->user();
+        $email  = strtolower(trim($request->child_email));
 
-        if (auth()->user()->children->contains($student->id)) {
-            return back()->withErrors(['child_email' => 'This child is already linked to your account.']);
+        if ($email === strtolower($parent->email)) {
+            return back()->withErrors(['child_email' => 'Не можеш да испратиш покана сам на себе.']);
         }
 
-        auth()->user()->children()->attach($student->id);
+        // Look up existing student account (if any).
+        $existing = User::where('email', $email)->where('role', 'student')->first();
 
-        return back()->with('success', 'Child added successfully.');
+        // Already linked? Don't create a duplicate invite.
+        if ($existing && $parent->children->contains($existing->id)) {
+            return back()->withErrors(['child_email' => 'Ова дете е веќе поврзано со твојот профил.']);
+        }
+
+        // A pending invitation already exists?
+        $existingInvite = ParentChildInvitation::where('parent_id', $parent->id)
+            ->where('child_email', $email)
+            ->where('status', ParentChildInvitation::STATUS_PENDING)
+            ->first();
+
+        if ($existingInvite && $existingInvite->isPending()) {
+            return back()->withErrors(['child_email' => 'Веќе има активна покана за оваа е-маил адреса. Откажи ја пред да испратиш нова.']);
+        }
+
+        $invitation = ParentChildInvitation::create([
+            'parent_id'     => $parent->id,
+            'child_email'   => $email,
+            'child_user_id' => $existing?->id,
+            'token'         => ParentChildInvitation::generateToken(),
+            'status'        => ParentChildInvitation::STATUS_PENDING,
+            'expires_at'    => now()->addDays(ParentChildInvitation::DEFAULT_TTL_DAYS),
+        ]);
+
+        if ($existing) {
+            $existing->notify(new ParentChildInvitationNotification($invitation));
+        } else {
+            Notification::route('mail', $email)
+                ->notify(new ParentChildInvitationNotification($invitation));
+        }
+
+        return back()->with('success', $existing
+            ? 'Поканата е испратена. Детето мора да ја прифати од својот профил.'
+            : 'Поканата е испратена. Откако ќе се регистрира, детето ќе биде поврзано со твојот профил.');
     }
 
-    public function removeChild(\App\Models\User $child)
+    public function cancelInvitation(ParentChildInvitation $invitation)
+    {
+        abort_if($invitation->parent_id !== auth()->id(), 403);
+
+        $invitation->markCancelled();
+
+        return back()->with('success', 'Поканата е откажана.');
+    }
+
+    public function removeChild(User $child)
     {
         $parent = auth()->user();
 

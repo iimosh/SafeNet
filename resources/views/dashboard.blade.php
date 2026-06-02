@@ -14,6 +14,46 @@
 
     <div class="py-10">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-6">
+
+            @php
+                $pendingInvites = auth()->user()->pendingInvitationsForMe()->with('parent')->get()
+                    ->filter(fn($i) => $i->isPending());
+            @endphp
+
+            @foreach($pendingInvites as $invite)
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow">
+                    <div>
+                        <p class="font-bold text-emerald-900">
+                            {{ $invite->parent->name }} те поканува да го поврзе твојот профил како родител-дете.
+                        </p>
+                        <p class="text-sm text-emerald-700/80 mt-1">
+                            {{ $invite->parent->email }}
+                            @if($invite->expires_at)
+                                · важи до {{ $invite->expires_at->format('d.m.Y H:i') }}
+                            @endif
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <form method="POST" action="{{ route('invitation.accept', $invite->token) }}">
+                            @csrf
+                            <button type="submit"
+                                    class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition">
+                                Прифати
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('invitation.decline', $invite->token) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    onclick="return confirm('Одбиј ја поканата?')"
+                                    class="px-5 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 transition">
+                                Одбиј
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
+
             <div class="bg-gradient-to-r from-primary to-secondary text-white shadow-xl rounded-2xl p-8">
 
                 <h1 class="text-3xl font-bold mb-3">
