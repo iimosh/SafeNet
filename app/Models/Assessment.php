@@ -41,4 +41,26 @@ class Assessment extends Model
     {
         return $this->hasMany(AssessmentAnswer::class);
     }
+
+    public function findPaired(): ?self
+    {
+        if (! $this->questionnaire) {
+            return null;
+        }
+
+        $oppositeRole = $this->questionnaire->target_role === 'student' ? 'parent' : 'student';
+
+        $pairedQuestionnaire = Questionnaire::where('target_role', $oppositeRole)->latest()->first();
+
+        if (! $pairedQuestionnaire) {
+            return null;
+        }
+
+        return static::where('filled_for_user_id', $this->filled_for_user_id)
+            ->where('questionnaire_id', $pairedQuestionnaire->id)
+            ->where('id', '!=', $this->id)
+            ->with('questionnaire')
+            ->latest()
+            ->first();
+    }
 }

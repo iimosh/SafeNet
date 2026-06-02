@@ -22,28 +22,14 @@ class ReportController extends Controller
         $assessment->load('questionnaire', 'answers.question', 'answers.option');
         $breakdown = collect($assessment->category_breakdown ?? [])->sortDesc();
 
-        $pairedAssessment = null;
-
-        if ($assessment->questionnaire) {
-            $oppositeRole = $assessment->questionnaire->target_role === 'student' ? 'parent' : 'student';
-
-            $pairedQuestionnaire = \App\Models\Questionnaire::where('target_role', $oppositeRole)->latest()->first();
-
-            if ($pairedQuestionnaire) {
-                $pairedAssessment = Assessment::where('filled_for_user_id', $assessment->filled_for_user_id)
-                    ->where('questionnaire_id', $pairedQuestionnaire->id)
-                    ->with('answers.question', 'answers.option')
-                    ->latest()
-                    ->first();
-            }
-        }
+        $pairedAssessment = $assessment->findPaired();
 
         $student = \App\Models\User::find($assessment->filled_for_user_id);
 
         $pdf = Pdf::loadView('reports.assessment', [
             'assessment'       => $assessment,
             'breakdown'        => $breakdown,
-            'pairedAssessment' => null, //za sega
+            'pairedAssessment' => $pairedAssessment,
             'student'          => $student,
         ]);
 

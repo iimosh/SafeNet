@@ -42,7 +42,7 @@
                         <div class="bg-white/15 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20">
                             <p class="text-sm text-white/70">Вкупно проценки</p>
                             <p class="text-2xl font-bold">
-                                {{ auth()->user()->children->sum(fn($child) => $child->assessments->count()) }}
+                                {{ auth()->user()->children->sum(fn($child) => $child->assessmentsFor->count()) }}
                             </p>
                         </div>
 
@@ -104,24 +104,35 @@
                             </h3>
 
                             <span class="text-sm text-slate-500">
-                                {{ $child->assessments()->count() }} проценки
+                                {{ $child->assessmentsFor()->count() }} проценки
                             </span>
                         </div>
 
-                        @forelse($child->assessments()->latest()->get() as $assessment)
+                        @forelse($child->assessmentsFor()->with('questionnaire')->latest()->get() as $assessment)
 
                             <div class="group bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-100 rounded-2xl p-5 mb-4 hover:shadow-lg transition duration-300">
 
                                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
                                     <div>
+                                        @php
+                                            $filledByParent = $assessment->questionnaire?->target_role === 'parent';
+                                        @endphp
+
                                         <p class="text-lg font-bold text-slate-800">
-                                            Проценка {{ $loop->iteration }}
+                                            {{ $assessment->questionnaire?->title ?? 'Проценка '.$loop->iteration }}
                                         </p>
 
-                                        <p class="text-sm text-slate-500 mt-1">
-                                            {{ $assessment->created_at->format('d.m.Y') }}
-                                        </p>
+                                        <div class="flex items-center gap-3 mt-1">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                                                {{ $filledByParent ? 'bg-violet-100 text-violet-700' : 'bg-sky-100 text-sky-700' }}">
+                                                {{ $filledByParent ? 'Пополнето од родител' : 'Пополнето од ученик' }}
+                                            </span>
+
+                                            <span class="text-sm text-slate-500">
+                                                {{ $assessment->created_at->format('d.m.Y') }}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div class="flex flex-wrap gap-3">

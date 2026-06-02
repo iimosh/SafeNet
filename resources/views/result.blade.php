@@ -204,6 +204,95 @@
             </div>
 
 
+            @if($pairedAssessment)
+
+                @php
+                    $studentAssessment = ($assessment->questionnaire?->target_role === 'student') ? $assessment : $pairedAssessment;
+                    $parentAssessment  = ($assessment->questionnaire?->target_role === 'parent')  ? $assessment : $pairedAssessment;
+
+                    $studentRows = collect($studentAssessment->category_breakdown ?? [])->keyBy('category_name');
+                    $parentRows  = collect($parentAssessment->category_breakdown ?? [])->keyBy('category_name');
+                    $allCategories = $studentRows->keys()->merge($parentRows->keys())->unique();
+
+                    $riskBadge = fn ($level) => match($level) {
+                        'low' => 'bg-emerald-100 text-emerald-700',
+                        'medium' => 'bg-yellow-100 text-yellow-700',
+                        'high' => 'bg-red-100 text-red-700',
+                        default => 'bg-slate-100 text-slate-700',
+                    };
+                @endphp
+
+                <div class="bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-8">
+
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-black text-slate-800 mb-2">
+                            Споредба: ученик vs родител
+                        </h2>
+                        <p class="text-slate-500">
+                            Како се разликуваат одговорите на ученикот и на родителот по категории.
+                        </p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-slate-500 border-b border-slate-200">
+                                    <th class="py-3 pr-4 font-semibold">Категорија</th>
+                                    <th class="py-3 px-4 font-semibold">Ученик</th>
+                                    <th class="py-3 px-4 font-semibold">Родител</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($allCategories as $categoryName)
+                                    @php $s = $studentRows->get($categoryName); $p = $parentRows->get($categoryName); @endphp
+                                    <tr class="border-b border-slate-100">
+                                        <td class="py-4 pr-4 font-semibold text-slate-800">{{ $categoryName }}</td>
+                                        <td class="py-4 px-4">
+                                            @if($s)
+                                                <span class="text-slate-700">{{ $s['score'] }} / {{ $s['max_score'] }}</span>
+                                                <span class="ml-2 inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $riskBadge($s['risk_level']) }}">
+                                                    {{ ucfirst($s['risk_level']) }}
+                                                </span>
+                                            @else
+                                                <span class="text-slate-400">—</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            @if($p)
+                                                <span class="text-slate-700">{{ $p['score'] }} / {{ $p['max_score'] }}</span>
+                                                <span class="ml-2 inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $riskBadge($p['risk_level']) }}">
+                                                    {{ ucfirst($p['risk_level']) }}
+                                                </span>
+                                            @else
+                                                <span class="text-slate-400">—</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr class="text-slate-800 font-bold">
+                                    <td class="py-4 pr-4">Глобално ниво</td>
+                                    <td class="py-4 px-4">
+                                        <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs {{ $riskBadge($studentAssessment->risk_level) }}">
+                                            {{ ucfirst($studentAssessment->risk_level) }}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs {{ $riskBadge($parentAssessment->risk_level) }}">
+                                            {{ ucfirst($parentAssessment->risk_level) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                </div>
+
+            @endif
+
+
             <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl shadow-2xl p-8 text-white">
 
                 <div class="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>

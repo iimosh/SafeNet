@@ -72,6 +72,48 @@
     <p>Нема податоци по категории.</p>
 @endif
 
+@if($pairedAssessment)
+    @php
+        $studentAssessment = ($assessment->questionnaire?->target_role === 'student') ? $assessment : $pairedAssessment;
+        $parentAssessment  = ($assessment->questionnaire?->target_role === 'parent')  ? $assessment : $pairedAssessment;
+
+        $studentRows = collect($studentAssessment->category_breakdown ?? [])->keyBy('category_name');
+        $parentRows  = collect($parentAssessment->category_breakdown ?? [])->keyBy('category_name');
+        $allCategories = $studentRows->keys()->merge($parentRows->keys())->unique();
+    @endphp
+
+    <h2>Споредба: ученик vs родител</h2>
+    <p>
+        Глобално ниво — Ученик:
+        <span class="badge {{ $studentAssessment->risk_level }}">{{ ucfirst($studentAssessment->risk_level) }}</span>
+        &nbsp;|&nbsp; Родител:
+        <span class="badge {{ $parentAssessment->risk_level }}">{{ ucfirst($parentAssessment->risk_level) }}</span>
+    </p>
+    <table>
+        <thead>
+        <tr>
+            <th>Категорија</th>
+            <th>Ученик (поени)</th>
+            <th>Ученик ризик</th>
+            <th>Родител (поени)</th>
+            <th>Родител ризик</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach($allCategories as $categoryName)
+            @php $s = $studentRows->get($categoryName); $p = $parentRows->get($categoryName); @endphp
+            <tr>
+                <td>{{ $categoryName }}</td>
+                <td>{{ $s ? ($s['score'].' / '.$s['max_score']) : '—' }}</td>
+                <td>{{ $s ? ucfirst($s['risk_level']) : '—' }}</td>
+                <td>{{ $p ? ($p['score'].' / '.$p['max_score']) : '—' }}</td>
+                <td>{{ $p ? ucfirst($p['risk_level']) : '—' }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+@endif
+
 <h2>Глобална препорака</h2>
 <p>{{ $assessment->global_recommendation ?? 'Нема достапна препорака.' }}</p>
 

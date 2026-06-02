@@ -42,9 +42,9 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Assessment::class);
     }
 
-    public function documents()
+    public function assessmentsFor()
     {
-        return $this->hasMany(Document::class);
+        return $this->hasMany(Assessment::class, 'filled_for_user_id');
     }
 
     public function children()
