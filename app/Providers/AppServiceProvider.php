@@ -43,7 +43,12 @@ class AppServiceProvider extends ServiceProvider
                 ->salutation('Поздрав, тимот на SafeNet');
         });
 
-        ResetPassword::toMailUsing(function (object $notifiable, string $url) {
+            ResetPassword::toMailUsing(function (object $notifiable, string $token) {
+            $url = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+
             return (new MailMessage)
                 ->subject('Ресетирање на лозинка — SafeNet')
                 ->greeting('Здраво, ' . ($notifiable->name ?? '') . '!')
