@@ -13,7 +13,11 @@ class ReportController extends Controller
 
         $canView = match($user->role) {
             'admin'  => true,
-            'parent' => $user->children->contains('id', $assessment->filled_for_user_id),
+            // Same restriction as AssessmentController::show — parents may only
+            // see their own submissions and the child's own self-submission.
+            'parent' => $user->children->contains('id', $assessment->filled_for_user_id)
+                && ($assessment->user_id === $user->id
+                    || $assessment->user_id === $assessment->filled_for_user_id),
             default  => $assessment->filled_for_user_id === $user->id,
         };
 
@@ -22,7 +26,7 @@ class ReportController extends Controller
         $assessment->load('questionnaire', 'answers.question', 'answers.option');
         $breakdown = collect($assessment->category_breakdown ?? [])->sortDesc();
 
-        $pairedAssessment = $assessment->findPaired();
+        $pairedAssessment = $assessment->findPaired($user);
 
         $student = \App\Models\User::find($assessment->filled_for_user_id);
 

@@ -42,7 +42,7 @@
                         <div class="bg-white/15 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20">
                             <p class="text-sm text-white/70">Вкупно проценки</p>
                             <p class="text-2xl font-bold">
-                                {{ auth()->user()->children->sum(fn($child) => $child->assessmentsFor->count()) }}
+                                {{ auth()->user()->children->sum(fn($child) => auth()->user()->visibleAssessmentsAbout($child)->count()) }}
                             </p>
                         </div>
 
@@ -104,11 +104,11 @@
                             </h3>
 
                             <span class="text-sm text-slate-500">
-                                {{ $child->assessmentsFor()->count() }} проценки
+                                {{ auth()->user()->visibleAssessmentsAbout($child)->count() }} проценки
                             </span>
                         </div>
 
-                        @forelse($child->assessmentsFor()->with('questionnaire')->latest()->get() as $assessment)
+                        @forelse(auth()->user()->visibleAssessmentsAbout($child)->with('questionnaire')->latest()->get() as $assessment)
 
                             <div class="group bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-100 rounded-2xl p-5 mb-4 hover:shadow-lg transition duration-300">
 

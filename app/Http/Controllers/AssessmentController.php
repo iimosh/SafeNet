@@ -193,7 +193,12 @@ class AssessmentController extends Controller
 
         $canView = match($user->role) {
             'admin'  => true,
-            'parent' => $user->children->contains('id', $assessment->filled_for_user_id),
+            // A parent may view: assessments they personally submitted, and the
+            // linked child's own self-submission. They may NOT view other
+            // parents' submissions about the same child.
+            'parent' => $user->children->contains('id', $assessment->filled_for_user_id)
+                && ($assessment->user_id === $user->id
+                    || $assessment->user_id === $assessment->filled_for_user_id),
             default  => $assessment->filled_for_user_id === $user->id,
         };
 
@@ -206,7 +211,7 @@ class AssessmentController extends Controller
         return view('result', [
             'assessment'       => $assessment,
             'breakdown'        => $breakdown,
-            'pairedAssessment' => $assessment->findPaired(),
+            'pairedAssessment' => $assessment->findPaired($user),
             'backRoute'        => auth()->user()->isParent()
                 ? route('parent.dashboard')
                 : route('dashboard'),

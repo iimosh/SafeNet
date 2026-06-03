@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\ParentChildInvitation;
 use App\Models\User;
+use App\Notifications\ParentChildInvitationNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -45,16 +47,7 @@ class RegisteredUserController extends Controller
 
         if (! $invitation && $request->role === 'parent') {
             $request->validate([
-                'child_email' => [
-                    'required',
-                    'email',
-                    function ($attribute, $value, $fail) {
-                        $student = User::where('email', $value)->where('role', 'student')->first();
-                        if (! $student) {
-                            $fail('Не постои студентски профил со таа е-маил адреса.');
-                        }
-                    },
-                ],
+                'child_email' => ['required', 'email:rfc', 'different:email'],
             ]);
         }
 
@@ -71,19 +64,48 @@ class RegisteredUserController extends Controller
             $invitation->markAccepted($user);
         }
 
-        // Parent self-registration with existing-student child: instant-attach (legacy path).
+        // Parent self-registration with child_email: send an invitation instead of
+        // silently attaching. The child must explicitly accept (or register through
+        // a signup-invite link if no account exists yet).
+        $pendingChildEmail = null;
         if (! $invitation && $request->role === 'parent') {
-            $student = User::where('email', $request->child_email)->first();
-            $user->children()->attach($student->id);
+            $childEmail = strtolower(trim($request->child_email));
+            $existingChild = User::where('email', $childEmail)->where('role', 'student')->first();
+
+            $pendingInvite = ParentChildInvitation::create([
+                'parent_id'     => $user->id,
+                'child_email'   => $childEmail,
+                'child_user_id' => $existingChild?->id,
+                'token'         => ParentChildInvitation::generateToken(),
+                'status'        => ParentChildInvitation::STATUS_PENDING,
+                'expires_at'    => now()->addDays(ParentChildInvitation::DEFAULT_TTL_DAYS),
+            ]);
+
+            if ($existingChild) {
+                $existingChild->notify(new ParentChildInvitationNotification($pendingInvite));
+            } else {
+                Notification::route('mail', $childEmail)
+                    ->notify(new ParentChildInvitationNotification($pendingInvite));
+            }
+
+            $pendingChildEmail = $childEmail;
         }
 
         event(new Registered($user));
         Auth::login($user);
 
-        return match (auth()->user()->role) {
+        $redirect = match (auth()->user()->role) {
             'parent' => redirect()->route('parent.dashboard'),
             default  => redirect()->route('dashboard'),
         };
+
+        if ($pendingChildEmail) {
+            $redirect = $redirect->with('success',
+                'Регистрацијата е успешна. Испративме покана на ' . $pendingChildEmail .
+                ' — поврзувањето ќе се активира откако детето ќе ја прифати.');
+        }
+
+        return $redirect;
     }
 
     private function resolveInvitation(?string $token): ?ParentChildInvitation

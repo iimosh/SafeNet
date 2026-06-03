@@ -48,6 +48,19 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(Assessment::class, 'filled_for_user_id');
     }
 
+    /**
+     * Assessments about $child that *this* user (a parent) is allowed to see:
+     * only the ones they submitted themselves, plus the child's own self-submission.
+     * Other parents' submissions about the same child are hidden for privacy.
+     */
+    public function visibleAssessmentsAbout(User $child)
+    {
+        return $child->assessmentsFor()->where(function ($q) use ($child) {
+            $q->where('user_id', $this->id)        // assessments I filled
+              ->orWhere('user_id', $child->id);    // child's own self-submission
+        });
+    }
+
     public function sentInvitations()
     {
         return $this->hasMany(ParentChildInvitation::class, 'parent_id')->latest();
